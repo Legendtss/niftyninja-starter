@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment — never commit this
+venv/
+env/
+.env/
+.venv/
+
+# Environment variables — contains secrets, never commit
+.env
+
+# Database — contains your trade data, don't commit
+db/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks (optional — add back if you use them)
+# .ipynb_checkpoints/
