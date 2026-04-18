@@ -46,6 +46,42 @@ def get_engine():
 fetcher = get_fetcher()
 engine  = get_engine()
 
+LIVE_PRICE_SLOT_COUNT = 5
+DEFAULT_LIVE_SYMBOLS = WATCHLIST[:LIVE_PRICE_SLOT_COUNT]
+
+
+def init_live_price_slots():
+    for index in range(LIVE_PRICE_SLOT_COUNT):
+        key = f"live_price_slot_{index + 1}"
+        if key not in st.session_state:
+            st.session_state[key] = DEFAULT_LIVE_SYMBOLS[index] if index < len(DEFAULT_LIVE_SYMBOLS) else ""
+
+
+def get_live_price_symbols() -> list[str]:
+    used_symbols = set()
+    live_symbols = []
+
+    for index in range(LIVE_PRICE_SLOT_COUNT):
+        key = f"live_price_slot_{index + 1}"
+        current_value = st.session_state.get(key, "")
+
+        options = [""] + [symbol for symbol in WATCHLIST if symbol not in used_symbols or symbol == current_value]
+        if current_value not in options:
+            current_value = ""
+            st.session_state[key] = ""
+
+        selected = st.selectbox(
+            f"Slot {index + 1}",
+            options=options,
+            key=key,
+        )
+
+        if selected:
+            used_symbols.add(selected)
+            live_symbols.append(selected)
+
+    return live_symbols
+
 
 # =============================================================
 # SIDEBAR
@@ -62,8 +98,6 @@ with st.sidebar:
 
     st.divider()
 
-    st.divider()
-
     # Manual refresh button
     if st.button("🔄 Refresh prices", use_container_width=True):
         st.cache_data.clear()   # force fresh data on next fetch
@@ -75,10 +109,15 @@ with st.sidebar:
 # =============================================================
 # MAIN AREA
 # =============================================================
+init_live_price_slots()
+
+with st.expander("Configure Live Prices", expanded=False):
+    st.caption("Choose up to five stocks. Change the slot order to reorder the cards, or clear a slot to remove a stock.")
+    live_symbols = get_live_price_symbols()
+
 st.markdown("## Live Prices")
 
-# Fetch quotes for the default live-price subset
-live_symbols = WATCHLIST[:5]
+# Fetch quotes for the configured live-price subset
 quotes = {}
 with st.spinner("Fetching prices..."):
     for sym in live_symbols:
