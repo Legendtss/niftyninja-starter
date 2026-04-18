@@ -140,6 +140,8 @@ if WATCHLIST:
 
     if rows:
         df_signals = pd.DataFrame(rows)
+        df_signals.index = range(1, len(df_signals) + 1)
+        df_signals.index.name = "#"
         st.dataframe(
             df_signals,
             use_container_width=True,
