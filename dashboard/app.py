@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 from data.fetcher import DataFetcher
 from signals.engine import SignalEngine
@@ -48,6 +49,8 @@ engine  = get_engine()
 
 LIVE_PRICE_SLOT_COUNT = 5
 DEFAULT_LIVE_SYMBOLS = WATCHLIST[:LIVE_PRICE_SLOT_COUNT]
+CHART_INTERVAL = "5m"
+CHART_PERIOD = "5d"
 
 
 def init_live_price_slots():
@@ -81,6 +84,41 @@ def get_live_price_symbols() -> list[str]:
             live_symbols.append(selected)
 
     return live_symbols
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_chart_data(symbol: str) -> pd.DataFrame:
+    return fetcher.get_intraday(symbol, interval=CHART_INTERVAL, period=CHART_PERIOD)
+
+
+def render_candlestick_chart(df: pd.DataFrame, symbol: str):
+    fig = go.Figure(
+        data=[
+            go.Candlestick(
+                x=df.index,
+                open=df["Open"],
+                high=df["High"],
+                low=df["Low"],
+                close=df["Close"],
+                increasing_line_color="#2ecc71",
+                increasing_fillcolor="#2ecc71",
+                decreasing_line_color="#e74c3c",
+                decreasing_fillcolor="#e74c3c",
+                name=symbol,
+            )
+        ]
+    )
+
+    fig.update_layout(
+        title=f"{symbol} - 5 Minute Candlestick Chart",
+        xaxis_rangeslider_visible=False,
+        height=520,
+        margin=dict(l=20, r=20, t=50, b=20),
+        template="plotly_dark",
+        showlegend=False,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # =============================================================
@@ -135,6 +173,32 @@ if quotes:
             value = f"₹{price:,.2f}",
             delta = delta_str,
         )
+
+st.divider()
+
+# =============================================================
+# STOCK CHARTS
+# =============================================================
+st.markdown("## Stock Chart")
+st.caption("Choose one stock at a time. Select None to hide the chart.")
+
+chart_choice = st.radio(
+    "Select a stock",
+    options=["None"] + WATCHLIST,
+    horizontal=True,
+    index=0,
+    key="chart_stock_selector",
+)
+
+if chart_choice != "None":
+    chart_df = get_chart_data(chart_choice)
+
+    if chart_df.empty:
+        st.info(f"No 5-minute chart data available for {chart_choice} right now.")
+    else:
+        render_candlestick_chart(chart_df, chart_choice)
+else:
+    st.info("Select any stock above to display its 5-minute candlestick chart.")
 
 st.divider()
 
