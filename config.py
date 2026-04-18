@@ -13,6 +13,16 @@ WATCHLIST = [
     "TCS",
     "HDFCBANK",
     "SBIN",
+    "WIPRO",
+    "JIOFIN",
+    "ITC",
+    "TATASTEEL",
+    "ICICIBANK",
+    "ONGC",
+    "NTPC",
+    "BEL",
+    "POWERGRID",
+    "KOTAKBANK",
 ]
 
 # --- Capital -------------------------------------------------

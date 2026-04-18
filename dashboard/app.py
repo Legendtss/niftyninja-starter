@@ -62,11 +62,12 @@ with st.sidebar:
 
     st.divider()
 
-    # Let user pick which stocks to display
-    selected = st.multiselect(
-        "Watchlist",
+    # Let user pick up to 5 stocks for live prices to keep the view readable.
+    live_symbols = st.multiselect(
+        "Live Prices (up to 5)",
         options=WATCHLIST,
-        default=WATCHLIST,
+        default=WATCHLIST[:5],
+        max_selections=5,
     )
 
     st.divider()
@@ -86,12 +87,12 @@ st.markdown("## Live Prices")
 
 # Fetch quotes for selected stocks
 quotes = {}
-if selected:
+if live_symbols:
     with st.spinner("Fetching prices..."):
-        for sym in selected:
+        for sym in live_symbols:
             quotes[sym] = fetcher.get_quote(sym)
 else:
-    st.info("No stocks selected. Choose symbols from the Watchlist in the sidebar.")
+    st.info("Select up to 5 symbols in the sidebar to show live prices.")
 
 # Display as a clean metrics grid
 if quotes:
@@ -114,10 +115,10 @@ st.divider()
 st.markdown("## Technical Signals")
 st.caption("Computed from daily data. Not financial advice.")
 
-if selected:
+if WATCHLIST:
     with st.spinner("Computing signals..."):
         rows = []
-        for sym in selected:
+        for sym in WATCHLIST:
             # Get historical data and run signal engine
             df = fetcher.get_history(sym, years=1)
             if df.empty:
@@ -160,7 +161,7 @@ if selected:
 
         # Show alerts if any
         all_alerts = []
-        for sym in selected:
+        for sym in WATCHLIST:
             df = fetcher.get_history(sym, years=1)
             if df.empty:
                 continue
