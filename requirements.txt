@@ -4,7 +4,6 @@
 yfinance>=0.2.36        # fetch NSE/BSE stock data (free, no API key)
 pandas>=2.0.0           # DataFrames — the core of everything
 numpy>=1.24.0           # math operations
-pandas-ta>=0.3.14b      # RSI, MACD, Bollinger Bands etc.
 streamlit>=1.32.0       # turns Python into a web dashboard
 plotly>=5.19.0          # interactive charts
 requests>=2.31.0        # HTTP calls (for NSE live data later)
