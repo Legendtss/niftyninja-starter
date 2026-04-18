@@ -62,14 +62,6 @@ with st.sidebar:
 
     st.divider()
 
-    # Let user pick up to 5 stocks for live prices to keep the view readable.
-    live_symbols = st.multiselect(
-        "Live Prices (up to 5)",
-        options=WATCHLIST,
-        default=WATCHLIST[:5],
-        max_selections=5,
-    )
-
     st.divider()
 
     # Manual refresh button
@@ -85,14 +77,12 @@ with st.sidebar:
 # =============================================================
 st.markdown("## Live Prices")
 
-# Fetch quotes for selected stocks
+# Fetch quotes for the default live-price subset
+live_symbols = WATCHLIST[:5]
 quotes = {}
-if live_symbols:
-    with st.spinner("Fetching prices..."):
-        for sym in live_symbols:
-            quotes[sym] = fetcher.get_quote(sym)
-else:
-    st.info("Select up to 5 symbols in the sidebar to show live prices.")
+with st.spinner("Fetching prices..."):
+    for sym in live_symbols:
+        quotes[sym] = fetcher.get_quote(sym)
 
 # Display as a clean metrics grid
 if quotes:
