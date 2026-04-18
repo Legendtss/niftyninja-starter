@@ -8,8 +8,13 @@
 
 import yfinance as yf
 import pandas as pd
+import sys
+import os
 from datetime import datetime, timedelta
 from typing import Optional
+
+# Allow running this file directly: python data/fetcher.py
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config import (
     WATCHLIST, HISTORICAL_YEARS,
@@ -65,7 +70,7 @@ class DataFetcher:
             datetime.today() - timedelta(days=365 * years)
         ).strftime("%Y-%m-%d")
 
-        log.info(f"Fetching history: {ticker} | {start_date} → {end_date}")
+        log.info(f"Fetching history: {ticker} | {start_date} -> {end_date}")
 
         try:
             df = yf.download(
@@ -76,7 +81,7 @@ class DataFetcher:
                 auto_adjust=True,    # adjust for splits and dividends
             )
 
-            if df.empty:
+            if df is None or df.empty:
                 log.warning(f"No data returned for {ticker}")
                 return pd.DataFrame()
 
@@ -128,7 +133,7 @@ class DataFetcher:
                 auto_adjust=True,
             )
 
-            if df.empty:
+            if df is None or df.empty:
                 log.warning(f"No intraday data for {ticker}")
                 return pd.DataFrame()
 
@@ -170,8 +175,18 @@ class DataFetcher:
             t    = yf.Ticker(ticker)
             info = t.fast_info   # faster than t.info — less data, less wait
 
-            price      = float(info.get("last_price") or 0)
-            prev_close = float(info.get("previous_close") or price)
+            # yfinance keys changed across versions; support both styles.
+            def pick(*keys, default=None):
+                for key in keys:
+                    value = info.get(key)
+                    if value is not None:
+                        return value
+                return default
+
+            price      = float(pick("last_price", "lastPrice", default=0) or 0)
+            prev_close = float(pick(
+                "previous_close", "previousClose", "regularMarketPreviousClose", default=price
+            ) or price)
             change     = round(price - prev_close, 2)
             change_pct = round((change / prev_close * 100) if prev_close else 0, 2)
 
@@ -180,9 +195,9 @@ class DataFetcher:
                 "price":      round(price, 2),
                 "change":     change,
                 "change_pct": change_pct,
-                "day_high":   float(info.get("day_high") or 0),
-                "day_low":    float(info.get("day_low") or 0),
-                "volume":     int(info.get("three_month_average_volume") or 0),
+                "day_high":   float(pick("day_high", "dayHigh", default=0) or 0),
+                "day_low":    float(pick("day_low", "dayLow", default=0) or 0),
+                "volume":     int(pick("three_month_average_volume", "threeMonthAverageVolume", default=0) or 0),
             }
 
         except Exception as e:

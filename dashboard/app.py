@@ -85,10 +85,13 @@ with st.sidebar:
 st.markdown("## Live Prices")
 
 # Fetch quotes for selected stocks
-with st.spinner("Fetching prices..."):
-    quotes = {}
-    for sym in selected:
-        quotes[sym] = fetcher.get_quote(sym)
+quotes = {}
+if selected:
+    with st.spinner("Fetching prices..."):
+        for sym in selected:
+            quotes[sym] = fetcher.get_quote(sym)
+else:
+    st.info("No stocks selected. Choose symbols from the Watchlist in the sidebar.")
 
 # Display as a clean metrics grid
 if quotes:
